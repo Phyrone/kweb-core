@@ -48,6 +48,7 @@ private val CLIENT_STATE_TIMEOUT: Duration = Duration.ofHours(1)
  */
 class Kweb constructor(val application: Application,
                        val debug: Boolean = true,
+                        install_modules: Boolean = true,
                        val plugins: List<KwebPlugin> = Collections.emptyList()
 ) : Closeable {
 
@@ -67,12 +68,15 @@ class Kweb constructor(val application: Application,
 
 
         application.apply {
-            install(DefaultHeaders)
-            install(Compression)
-            install(WebSockets) {
-                pingPeriod = Duration.ofSeconds(10)
-                timeout = Duration.ofSeconds(30)
+            if(install_modules){
+                install(DefaultHeaders)
+                install(Compression)
+                install(WebSockets) {
+                    pingPeriod = Duration.ofSeconds(10)
+                    timeout = Duration.ofSeconds(30)
+                }
             }
+
 
             routing {
 
