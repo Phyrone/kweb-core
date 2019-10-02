@@ -26,8 +26,8 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.collections.ArrayList
 
-private val MAX_PAGE_BUILD_TIME : Duration = Duration.ofSeconds(5)
-private val CLIENT_STATE_TIMEOUT : Duration = Duration.ofHours(1)
+private val MAX_PAGE_BUILD_TIME: Duration = Duration.ofSeconds(5)
+private val CLIENT_STATE_TIMEOUT: Duration = Duration.ofHours(1)
 
 /**
  * The core kwebserver, and the starting point for almost any Kweb app.  This will element a HTTP server and respond
@@ -46,29 +46,27 @@ private val CLIENT_STATE_TIMEOUT : Duration = Duration.ofHours(1)
  * @property buildPage A lambda which will build the webpage to be served to the user, this is where your code should
  *                     go
  */
-class Kweb constructor(val port: Int,
-                                  val debug: Boolean = true,
-                                  val plugins: List<KwebPlugin> = Collections.emptyList(),
-                                  val buildPage: WebBrowser.() -> Unit
+class Kweb constructor(val application: Application,
+                       val debug: Boolean = true,
+                       val plugins: List<KwebPlugin> = Collections.emptyList()
 ) : Closeable {
 
     private val clientState: ConcurrentHashMap<String, RemoteClientState> = ConcurrentHashMap()
 
-
+    lateinit var bootstrapHtmlTemplate: String
     private val mutableAppliedPlugins: MutableSet<KwebPlugin> = HashSet()
     val appliedPlugins: Set<KwebPlugin> get() = mutableAppliedPlugins
 
-    private val server: JettyApplicationEngine
 
     init {
-        logger.info("Initializing Kweb listening on port $port")
+        logger.info("Initializing Kweb listening")
 
         if (debug) {
             logger.warn("Debug mode enabled, if in production use KWeb(debug = false)")
         }
 
 
-        server = embeddedServer(Jetty, port) {
+        application.apply {
             install(DefaultHeaders)
             install(Compression)
             install(WebSockets) {
@@ -78,29 +76,14 @@ class Kweb constructor(val port: Int,
 
             routing {
 
-                val bootstrapHtmlTemplate = generateHTMLTemplate()
+                bootstrapHtmlTemplate = generateHTMLTemplate()
 
-                get("/robots.txt") {
-                    call.response.status(HttpStatusCode.NotFound)
-                    call.respondText("robots.txt not currently supported by kweb")
-                }
-
-                get("/favicon.ico") {
-                    call.response.status(HttpStatusCode.NotFound)
-                    call.respondText("favicons not currently supported by kweb")
-                }
-
-                listenForHTTPConnection(bootstrapHtmlTemplate)
 
                 listenForWebsocketConnection()
             }
         }
-
-        server.start()
-        logger.info { "KWeb is listening on port $port" }
-
         GlobalScope.launch {
-            while(true) {
+            while (true) {
                 delay(Duration.ofMinutes(1))
                 cleanUpOldClientStates()
             }
@@ -122,7 +105,7 @@ class Kweb constructor(val port: Int,
         return bootstrapHtmlTemplate
     }
 
-    private fun Routing.listenForWebsocketConnection(path : String = "/ws") {
+    private fun Routing.listenForWebsocketConnection(path: String = "/ws") {
         webSocket(path) {
 
             val hello = gson.fromJson<Client2ServerMessage>(((incoming.receive() as Text).readText()))
@@ -177,7 +160,13 @@ class Kweb constructor(val port: Int,
         }
     }
 
-    private fun Routing.listenForHTTPConnection(bootstrapHtmlTemplate: String) {
+    fun page(path: String, buildPage: WebBrowser.() -> Unit) {
+        application.routing {
+            route(path) { listenForHTTPConnection(bootstrapHtmlTemplate, buildPage) }
+        }
+    }
+
+    private fun Route.listenForHTTPConnection(bootstrapHtmlTemplate: String, buildPage: WebBrowser.() -> Unit) {
         get("/{visitedUrl...}") {
             val kwebSessionId = createNonce()
 
@@ -377,7 +366,6 @@ class Kweb constructor(val port: Int,
 
     override fun close() {
         logger.info("Shutting down Kweb")
-        server.stop(0, 0, TimeUnit.SECONDS)
     }
 
     private fun cleanUpOldClientStates() {
