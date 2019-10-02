@@ -31,22 +31,3 @@ open class TrElement(parent: Element) : Element(parent)
 
 fun ElementCreator<TrElement>.td(attributes: Map<String, Any> = attr) = TdElement(element("td", attributes))
 class TdElement(parent: Element) : Element(parent)
-
-fun table_example() {
-    Kweb(port = 2314, buildPage = {
-        doc.body.new {
-            table().new {
-                thead().new {
-                    tr().new {
-                        th().text("Name"); th().text("Address")
-                    }
-                }
-                tbody().new {
-                    tr().new {
-                        td().text("Ian"); td().text("Austin")
-                    }
-                }
-            }
-        }
-    })
-}

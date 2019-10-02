@@ -133,19 +133,3 @@ private fun <ITEM : Any, EL : Element> ElementCreator<EL>.createItem(
     return ItemInfo(itemElementCreator, itemVar)
 }
 
-fun ordered_view_set_sample() {
-    data class Cat(val name: String, val color: String)
-
-    val cats = Shoebox<Cat>()
-    val catColorView = cats.view("catColors", Cat::color)
-    Kweb(port = 1234, buildPage = {
-        doc.body.new {
-            renderEach(catColorView.orderedSet("brown")) { brownCat ->
-                div().new {
-                    h1().text(brownCat.map(Cat::name))
-                }
-            }
-        }
-    })
-}
-

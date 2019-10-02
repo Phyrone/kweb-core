@@ -46,11 +46,3 @@ open class TitleElement(parent: Element) : Element(parent)
 fun ElementCreator<HeadElement>.title(attributes: Map<String, Any> = attr) = TitleElement(element("title", attributes))
 
 
-private fun document_sample() {
-    Kweb(port = 1234, buildPage = {
-        doc.body.new {
-            h1().text("Hello World!")
-        }
-    })
-}
-

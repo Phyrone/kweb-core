@@ -41,20 +41,4 @@ fun ElementCreator<FoundationTopBarSectionElement>.right(attributes: Map<String,
         = FoundationRightElement(ul(attributes.classes("right")))
 
 
-fun main(args: Array<String>) {
-    foundation_menu_sample()
-}
 
-private fun foundation_menu_sample() {
-    Kweb(port = 1234, plugins = listOf(foundation), buildPage = {
-        doc.body.new {
-            foundation.topBar().new {
-                titleArea().new()
-                        .name().new()
-                        .h1().new()
-                        .a(href="#")
-                        .text("My Site")
-            }
-        }
-    })
-}

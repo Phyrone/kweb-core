@@ -81,19 +81,4 @@ class RouteReceiver internal constructor(val parentElementCreator: ElementCreato
     }
 }
 
-private fun testSampleForRouting() {
-    Kweb(port = 16097, buildPage = {
-        doc.body.new {
-            route {
-                path("/users/{userId}") { params ->
-                    val userId = params.getValue("userId")
-                    h1().text(userId.map { "User id: $it" })
-                }
-                path("/lists/{listId}") { params ->
-                    val listId = params.getValue("listId")
-                    h1().text(listId.map { "List id: $it" })
-                }
-            }
-        }
-    })
-}
+

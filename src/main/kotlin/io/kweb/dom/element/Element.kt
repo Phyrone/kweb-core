@@ -335,18 +335,3 @@ fun <ELEMENT_TYPE : Element, RETURN_VALUE_TYPE> ELEMENT_TYPE.new(
 }
 
 
-// Element Attribute modifier
-private fun new_sample_1() {
-    Kweb(port = 1234, buildPage = {
-        doc.body.new().h1().text("Hello World!")
-    })
-}
-
-private fun new_sample_2() {
-    Kweb(port = 1234, buildPage = {
-        doc.body.new {
-            h1().text("Hello World!")
-        }
-    })
-}
-
